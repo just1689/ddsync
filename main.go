@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/just1689/ddsync/io"
+	"github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -22,7 +23,15 @@ func main() {
 
 		go func() {
 			for e := range enriched {
-				fmt.Println(e.FullPath, e.IsDirectory, e.Event.Name, e.Event.Op, e.Directory)
+				if !e.IsDirectory && e.Event.Op == fsnotify.Write {
+					c := e.Read()
+					for f := range c {
+						logrus.Print(string(*f.Buffer))
+					}
+
+				}
+
+				logrus.Println(e.FullPath, e.IsDirectory, e.Event.Name, e.Event.Op, e.Directory)
 			}
 		}()
 

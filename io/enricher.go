@@ -1,7 +1,6 @@
 package io
 
 import (
-	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"os"
 )
@@ -23,8 +22,9 @@ func StartEnrich(directory string, in chan *fsnotify.Event) (out chan *Enriched)
 		for {
 			i := <-in
 			o := &Enriched{
-				Event:    i,
-				FullPath: fmt.Sprintf("%s/%s", directory, i.Name),
+				Event: i,
+				//FullPath: fmt.Sprintf("%s/%s", directory, i.Name), //UNIX vs WINDOWS?
+				FullPath: i.Name,
 			}
 			o.IsDirectory = isDir(o.FullPath)
 			out <- o
