@@ -5,6 +5,7 @@ import (
 	"github.com/nsqio/nsq/nsqd"
 	"github.com/sirupsen/logrus"
 	"log"
+	"time"
 )
 
 type NsqClient struct {
@@ -19,7 +20,8 @@ func (n *NsqClient) Stop() {
 }
 
 func (n *NsqClient) Publish(topic string, msg []byte) (err error) {
-	err = n.p.Publish("embedded", msg)
+
+	err = n.p.Publish(topic, msg)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -27,8 +29,7 @@ func (n *NsqClient) Publish(topic string, msg []byte) (err error) {
 }
 
 func (n *NsqClient) AddHandler(topic, channel string, h func(b []byte)) (err error) {
-	// Now set up a consumer
-	c, err := nsq.NewConsumer("embedded", "local", n.cfg)
+	c, err := nsq.NewConsumer(topic, channel, n.cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,7 +37,7 @@ func (n *NsqClient) AddHandler(topic, channel string, h func(b []byte)) (err err
 		h(m.Body)
 		return nil
 	}))
-	err = c.ConnectToNSQD(n.lookupAddress)
+	err = c.ConnectToNSQD("localhost:4150")
 	return
 }
 
@@ -51,12 +52,22 @@ func Connect(lo string) (nsqClient *NsqClient) {
 	go func() {
 
 		opts := nsqd.NewOptions()
+		opts.NSQLookupdTCPAddresses = []string{lo}
+		opts.MemQueueSize = int64(256) // 256 X 4KB = 1MB
 		daemon := nsqd.New(opts)
 		daemon.Main()
 		<-nsqClient.stop
 		daemon.Exit()
 	}()
 
+	time.Sleep(1 * time.Second)
+
+	// Set up a Producer, pointing at the default host:port
+	var err error
+	nsqClient.p, err = nsq.NewProducer("localhost:4150", nsqClient.cfg)
+	if err != nil {
+		logrus.Error(err)
+	}
 	return
 
 }

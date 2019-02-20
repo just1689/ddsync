@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/just1689/ddsync/fs"
+	"github.com/just1689/ddsync/nsq"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -15,6 +17,22 @@ func main() {
 	done := make(chan bool)
 
 	dirs := strings.Split(*directories, ",")
+
+	f := func(b []byte) {
+		fmt.Println(">", string(b))
+	}
+
+	c := nsq.Connect("192.168.88.24:4160")
+	err := c.AddHandler("a", "a", f)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	err = c.Publish("a", []byte("something"))
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
 
 	for _, d := range dirs {
 
