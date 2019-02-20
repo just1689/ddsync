@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/fsnotify/fsnotify"
-	"github.com/just1689/ddsync/io"
+	"github.com/just1689/ddsync/fs"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -18,8 +18,8 @@ func main() {
 
 	for _, d := range dirs {
 
-		events := io.Watch(d)
-		enriched := io.StartEnrich(d, events)
+		events := fs.Watch(d)
+		enriched := fs.StartEnrich(d, events)
 
 		go func() {
 			for e := range enriched {

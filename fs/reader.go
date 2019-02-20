@@ -1,4 +1,4 @@
-package io
+package fs
 
 import (
 	"github.com/sirupsen/logrus"
