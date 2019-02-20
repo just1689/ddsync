@@ -7,6 +7,7 @@ import (
 )
 
 type Frame struct {
+	Number int
 	Buffer *[]byte
 	Len    int
 }
@@ -20,6 +21,7 @@ func readSlowly(filename string) (out chan *Frame) {
 			logrus.Error(err)
 		}
 		logrus.Debugln("... starting", filename)
+		n := 1
 		for {
 			buffer := make([]byte, 4096)
 			l, err := file.Read(buffer)
@@ -27,11 +29,13 @@ func readSlowly(filename string) (out chan *Frame) {
 				break
 			}
 			frame := &Frame{
+				Number: n,
 				Buffer: &buffer,
 				Len:    l,
 			}
 			logrus.Debugln("... channeling", filename)
 			out <- frame
+			n += 1
 		}
 		file.Close()
 		close(out)
