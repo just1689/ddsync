@@ -19,7 +19,10 @@ It was originally written to keep a number of directories in sync across a few d
 - Run an nsq lookup instance.
 - Run an nsq admin instance (if you choose).
 - Run ddsync with `-dir` flag indicating directories comma separated.
-- `ddsync -dirs=.`
+- `ddsync -dirs=.` for the local directory.
+- `ddsync -dirs=~/sync` for the sync directory in the user's home folder.
+- `ddsync -dirs=~/sync,~/other` for the sync and other directories in the user's home folder.
+
 
 ### Running docker container
 
