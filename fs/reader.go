@@ -18,6 +18,7 @@ func readSlowly(filename string) (out chan *Frame) {
 	out = make(chan *Frame)
 	go func() {
 		file, err := os.Open(filename)
+		defer file.Close()
 		if err != nil {
 			logrus.Error(err)
 		}
@@ -39,7 +40,6 @@ func readSlowly(filename string) (out chan *Frame) {
 			out <- frame
 			n += 1
 		}
-		file.Close()
 		close(out)
 	}()
 	return out
