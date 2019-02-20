@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
@@ -11,6 +12,10 @@ import (
 )
 
 var directories = flag.String("dirs", ".", "Directors separated by a comma.")
+var lookupAddress = flag.String("lookup", "", "Lookup address and port host:4160")
+
+const TopicEvent = "ddsync-event-dir"
+const TopicFrame = "ddsync-frame-file"
 
 func main() {
 	flag.Parse()
@@ -22,7 +27,10 @@ func main() {
 		fmt.Println(">", string(b))
 	}
 
-	c := nsq.Connect("192.168.88.24:4160")
+	// Connect to
+	c := nsq.Connect(*lookupAddress)
+
+	////
 	err := c.AddHandler("a", "a", f)
 	if err != nil {
 		logrus.Error(err)
@@ -33,6 +41,7 @@ func main() {
 		logrus.Error(err)
 		return
 	}
+	////
 
 	for _, d := range dirs {
 
@@ -41,10 +50,31 @@ func main() {
 
 		go func() {
 			for e := range enriched {
+				b, err := json.Marshal(*e)
+				if err != nil {
+					logrus.Error(err)
+					continue
+				}
+				err = c.Publish(TopicEvent, b)
+				if err != nil {
+					logrus.Error(err)
+					continue
+				}
+
 				if !e.IsDirectory && e.Event.Op == fsnotify.Write {
-					c := e.Read()
-					for f := range c {
-						logrus.Print(string(*f.Buffer))
+					frames := e.Read()
+					for f := range frames {
+						b, err := json.Marshal(*f)
+						if err != nil {
+							logrus.Error(err)
+							continue
+						}
+						err = c.Publish(TopicFrame, b)
+						if err != nil {
+							logrus.Error(err)
+							return
+						}
+						//logrus.Print(string(*f.Buffer))
 					}
 
 				}
