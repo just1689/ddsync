@@ -1,4 +1,4 @@
-module github.com/just1689/dsyncd
+module github.com/just1689/ddsync
 
 require (
 	github.com/fsnotify/fsnotify v1.4.7
