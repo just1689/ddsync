@@ -21,18 +21,22 @@ const TopicFrame = "ddsync-frame-file"
 
 func main() {
 
-	setupID()
-
 	flag.Parse()
-	done := make(chan bool)
+	setupID()
 	dirs := strings.Split(*directories, ",")
+
+	done := make(chan bool)
 	c := setupNSQ()
+	MonitorDirs(dirs, c)
+	<-done
+
+}
+
+func MonitorDirs(dirs []string, c *nsq.NsqClient) {
 
 	for _, d := range dirs {
-
 		events := fs.Watch(d)
 		enriched := fs.StartEnrich(ID, d, events)
-
 		go func() {
 			for e := range enriched {
 
@@ -47,9 +51,7 @@ func main() {
 				logrus.Debugln(e.FullPath, e.IsDirectory, e.Event.Name, e.Event.Op, e.Directory)
 			}
 		}()
-
 	}
-	<-done
 }
 
 func publishFrame(c *nsq.NsqClient, e *fs.Enriched) (err error) {
