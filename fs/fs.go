@@ -2,14 +2,14 @@ package fs
 
 import (
 	"github.com/fsnotify/fsnotify"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 func Watch(directory string) (events chan *fsnotify.Event) {
 	events = make(chan *fsnotify.Event)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	go func() {
 		defer watcher.Close()
@@ -29,13 +29,13 @@ func Watch(directory string) (events chan *fsnotify.Event) {
 				if !ok {
 					return
 				}
-				log.Println("error:", err)
+				logrus.Println("error:", err)
 			}
 		}
 	}()
 	err = watcher.Add(directory)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	return
 }

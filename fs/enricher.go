@@ -6,6 +6,7 @@ import (
 )
 
 type Enriched struct {
+	InstanceID  string
 	Event       *fsnotify.Event
 	FullPath    string
 	IsDirectory bool
@@ -16,7 +17,7 @@ func (e *Enriched) Read() chan *Frame {
 	return readSlowly(e.FullPath)
 }
 
-func StartEnrich(directory string, in chan *fsnotify.Event) (out chan *Enriched) {
+func StartEnrich(instanceID, directory string, in chan *fsnotify.Event) (out chan *Enriched) {
 	out = make(chan *Enriched)
 	go func() {
 		for {
@@ -24,7 +25,8 @@ func StartEnrich(directory string, in chan *fsnotify.Event) (out chan *Enriched)
 			o := &Enriched{
 				Event: i,
 				//FullPath: fmt.Sprintf("%s/%s", directory, i.Name), //UNIX vs WINDOWS?
-				FullPath: i.Name,
+				FullPath:   i.Name,
+				InstanceID: instanceID,
 			}
 			o.IsDirectory = isDir(o.FullPath)
 			out <- o
