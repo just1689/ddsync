@@ -82,7 +82,7 @@ func setupID() {
 
 func setupNSQ() (c *nsq.NsqClient) {
 	// Setup NSQ
-	c = nsq.Connect(*lookupAddress, *listenAddress)
+	c = nsq.StartNSQDaemon(*lookupAddress, *listenAddress)
 	err := c.AddHandler(TopicEvent, ID, fs.CreateEventSubscriberForInstance(ID))
 	if err != nil {
 		logrus.Error(err)
