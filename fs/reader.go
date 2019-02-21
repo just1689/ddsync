@@ -7,13 +7,14 @@ import (
 )
 
 type Frame struct {
-	Filename string
-	Number   int
-	Buffer   *[]byte
-	Len      int
+	InstanceID  string
+	Filename    string
+	FrameNumber int
+	Buffer      *[]byte
+	Len         int
 }
 
-func readSlowly(filename string) (out chan *Frame) {
+func readSlowly(instanceID, filename string) (out chan *Frame) {
 	logrus.Debugln("Reading", filename)
 	out = make(chan *Frame)
 	go func() {
@@ -23,7 +24,7 @@ func readSlowly(filename string) (out chan *Frame) {
 			logrus.Error(err)
 		}
 		logrus.Debugln("... starting", filename)
-		n := 1
+		frameNumber := 1
 		for {
 			buffer := make([]byte, 4096)
 			l, err := file.Read(buffer)
@@ -31,14 +32,15 @@ func readSlowly(filename string) (out chan *Frame) {
 				break
 			}
 			frame := &Frame{
-				Filename: filename,
-				Number:   n,
-				Buffer:   &buffer,
-				Len:      l,
+				InstanceID:  instanceID,
+				Filename:    filename,
+				FrameNumber: frameNumber,
+				Buffer:      &buffer,
+				Len:         l,
 			}
 			logrus.Debugln("... channeling", filename)
 			out <- frame
-			n += 1
+			frameNumber += 1
 		}
 		close(out)
 	}()

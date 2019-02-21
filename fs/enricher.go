@@ -14,7 +14,7 @@ type Enriched struct {
 }
 
 func (e *Enriched) Read() chan *Frame {
-	return readSlowly(e.FullPath)
+	return readSlowly(e.InstanceID, e.FullPath)
 }
 
 func StartEnrich(instanceID, directory string, in chan *fsnotify.Event) (out chan *Enriched) {
@@ -23,8 +23,7 @@ func StartEnrich(instanceID, directory string, in chan *fsnotify.Event) (out cha
 		for {
 			i := <-in
 			o := &Enriched{
-				Event: i,
-				//FullPath: fmt.Sprintf("%s/%s", directory, i.Name), //UNIX vs WINDOWS?
+				Event:      i,
 				FullPath:   i.Name,
 				InstanceID: instanceID,
 			}
