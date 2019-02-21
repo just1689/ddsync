@@ -10,6 +10,7 @@ import (
 
 type NsqClient struct {
 	lookupAddress string
+	listenAddress string
 	stop          chan bool
 	p             *nsq.Producer
 	cfg           *nsq.Config
@@ -37,15 +38,16 @@ func (n *NsqClient) AddHandler(topic, channel string, h func(b []byte)) (err err
 		h(m.Body)
 		return nil
 	}))
-	err = c.ConnectToNSQD("localhost:4150")
+	err = c.ConnectToNSQD(n.listenAddress)
 	return
 }
 
-func Connect(lo string) (nsqClient *NsqClient) {
+func StartNSQDaemon(lo, li string) (nsqClient *NsqClient) {
 
 	nsqClient = &NsqClient{
 		stop:          make(chan bool),
 		lookupAddress: lo,
+		listenAddress: li,
 		cfg:           nsq.NewConfig(),
 	}
 
@@ -64,7 +66,7 @@ func Connect(lo string) (nsqClient *NsqClient) {
 
 	// Set up a Producer, pointing at the default host:port
 	var err error
-	nsqClient.p, err = nsq.NewProducer("localhost:4150", nsqClient.cfg)
+	nsqClient.p, err = nsq.NewProducer(li, nsqClient.cfg)
 	if err != nil {
 		logrus.Error(err)
 	}
