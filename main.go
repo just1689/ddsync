@@ -85,8 +85,16 @@ func setupNSQ() (c *nsq.NsqClient) {
 	err := c.AddHandler(TopicEvent, ID, fs.CreateEventSubscriberForInstance(ID))
 	if err != nil {
 		logrus.Error(err)
+		panic(err)
 		return
 	}
+	err = c.AddHandler(TopicFrame, ID, fs.CreateFrameSubscriberForInstance(ID))
+	if err != nil {
+		logrus.Error(err)
+		panic(err)
+		return
+	}
+
 	return
 
 }
