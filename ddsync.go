@@ -35,33 +35,13 @@ func main() {
 
 		go func() {
 			for e := range enriched {
-				b, err := json.Marshal(*e)
-				if err != nil {
-					logrus.Error(err)
-					continue
-				}
-				err = c.Publish(TopicEvent, b)
-				if err != nil {
-					logrus.Error(err)
+
+				if err := publishEvent(c, e); err != nil {
 					continue
 				}
 
-				if !e.IsDirectory && e.Event.Op == fsnotify.Write {
-					frames := e.Read()
-					for f := range frames {
-						b, err := json.Marshal(*f)
-						if err != nil {
-							logrus.Error(err)
-							continue
-						}
-						err = c.Publish(TopicFrame, b)
-						if err != nil {
-							logrus.Error(err)
-							return
-						}
-						//logrus.Print(string(*f.Buffer))
-					}
-
+				if err := publishFrame(c, e); err != nil {
+					continue
 				}
 
 				logrus.Debugln(e.FullPath, e.IsDirectory, e.Event.Name, e.Event.Op, e.Directory)
@@ -70,6 +50,42 @@ func main() {
 
 	}
 	<-done
+}
+
+func publishFrame(c *nsq.NsqClient, e *fs.Enriched) (err error) {
+	if !e.IsDirectory && e.Event.Op == fsnotify.Write {
+		frames := e.Read()
+		var b []byte
+		for f := range frames {
+			b, err = json.Marshal(*f)
+			if err != nil {
+				logrus.Error(err)
+				continue
+			}
+			err = c.Publish(TopicFrame, b)
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			//logrus.Print(string(*f.Buffer))
+		}
+
+	}
+	return
+}
+
+func publishEvent(c *nsq.NsqClient, e *fs.Enriched) (err error) {
+	b, err := json.Marshal(*e)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	err = c.Publish(TopicEvent, b)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	return
 }
 
 func setupID() {
