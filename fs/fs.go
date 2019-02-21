@@ -20,16 +20,11 @@ func Watch(directory string) (events chan *fsnotify.Event) {
 					return
 				}
 				events <- &event
-
-				//log.Println("event:", event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					//log.Println("modified file:", event.Name)
-				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
 				}
-				logrus.Println("error:", err)
+				logrus.Error(err)
 			}
 		}
 	}()
