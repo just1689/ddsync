@@ -13,6 +13,7 @@ import (
 
 var directories = flag.String("dirs", ".", "Directors separated by a comma.")
 var lookupAddress = flag.String("lookup", "", "Lookup address and port host:4160")
+var listenAddr = flag.String("listen", "localhost:4150", "Address to host NSQ Daemon server on.")
 var ID string
 
 const TopicEvent = "ddsync-event-dir"
